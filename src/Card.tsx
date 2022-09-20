@@ -28,6 +28,7 @@ interface DragItem {
 
 export const Card: FC<CardProps> = ({ id, text, index, moveCard }) => {
   const ref = useRef<HTMLDivElement>(null);
+
   const [{ handlerId }, drop] = useDrop<
     DragItem,
     void,
@@ -43,49 +44,25 @@ export const Card: FC<CardProps> = ({ id, text, index, moveCard }) => {
       if (!ref.current) {
         return;
       }
+
       const dragIndex = item.index;
       const hoverIndex = index;
-
-      // Don't replace items with themselves
-      if (dragIndex === hoverIndex) {
-        return;
-      }
-
-      // Determine rectangle on screen
       const hoverBoundingRect = ref.current?.getBoundingClientRect();
-
-      // Get vertical middle
       const hoverMiddleY =
         (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+      const hoverActualY = monitor.getClientOffset()!.y - hoverBoundingRect.top;
 
-      // Determine mouse position
-      const clientOffset = monitor.getClientOffset();
+      // if dragging down, continue only when hover is smaller than middle Y
+      if (dragIndex < hoverIndex && hoverActualY < hoverMiddleY) return;
+      // if dragging up, continue only when hover is bigger than middle Y
+      if (dragIndex > hoverIndex && hoverActualY > hoverMiddleY) return;
 
-      // Get pixels to the top
-      const hoverClientY = (clientOffset as XYCoord).y - hoverBoundingRect.top;
-
-      // Only perform the move when the mouse has crossed half of the items height
-      // When dragging downwards, only move when the cursor is below 50%
-      // When dragging upwards, only move when the cursor is above 50%
-
-      // Dragging downwards
-      if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) {
-        return;
-      }
-
-      // Dragging upwards
-      if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
-        return;
-      }
-
-      // Time to actually perform the action
       moveCard(dragIndex, hoverIndex);
-
-      // Note: we're mutating the monitor item here!
-      // Generally it's better to avoid mutations,
-      // but it's good here for the sake of performance
-      // to avoid expensive index searches.
       item.index = hoverIndex;
+
+      const { x, y } = monitor.getInitialClientOffset();
+
+      console.log(x, y);
     },
   });
 
@@ -100,7 +77,7 @@ export const Card: FC<CardProps> = ({ id, text, index, moveCard }) => {
   });
 
   const opacity = isDragging ? 0 : 1;
-  drag(drop(ref));
+  drop(drag(ref));
   return (
     <div
       ref={ref}
@@ -108,6 +85,7 @@ export const Card: FC<CardProps> = ({ id, text, index, moveCard }) => {
       onDragOver={(e) => e.preventDefault()}
       style={{ ...style, opacity }}
       data-handler-id={handlerId}
+      draggable={true}
     >
       {text}
     </div>

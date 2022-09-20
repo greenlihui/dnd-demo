@@ -76,8 +76,8 @@ export const Container: FC = () => {
   );
 
   return (
-    <>
-      <div style={style}>{cards.map((card, i) => renderCard(card, i))}</div>
-    </>
+    <div style={style} onDragOver={(e) => e.preventDefault()}>
+      {cards.map((card, i) => renderCard(card, i))}
+    </div>
   );
 };
