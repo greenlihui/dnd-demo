@@ -1,9 +1,11 @@
 import React from "react";
-import ReactDOM from "react-dom/client";
+import ReactDOM, { render } from "react-dom";
+
 import { App } from ".";
 
-ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+render(
   <React.StrictMode>
     <App />
-  </React.StrictMode>
+  </React.StrictMode>,
+  document.getElementById("root") as HTMLElement
 );
